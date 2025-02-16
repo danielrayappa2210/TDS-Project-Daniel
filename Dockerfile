@@ -1,17 +1,20 @@
-# Use official Python base image
+# Use a base image with Python 3.11
 FROM python:3.11
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy project files into the container
-COPY . /app
+# Install uv (since it's not included by default)
+RUN pip install uv
 
-# Install uv and create a virtual environment
-RUN pip install uv && uv venv && uv pip install -r requirements.txt
+# Copy dependency files first (to leverage caching)
+COPY pyproject.toml requirements.txt ./
 
-# Expose the port FastAPI will run on
-EXPOSE 8000
+# Create a virtual environment with uv and install dependencies
+RUN uv venv && uv pip install --no-cache-dir -r requirements.txt
 
-# Run the application
-CMD ["uv", "pip", "install", "--system"] && ["python", "agent.py"]
+# Copy the rest of the application files
+COPY . .
+
+# Ensure the virtual environment is activated and run FastAPI
+CMD ["uv", "pip", "run", "uvicorn", "agent:app", "--host", "0.0.0.0", "--port", "8000"]
