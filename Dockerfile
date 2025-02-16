@@ -1,20 +1,18 @@
-# Use a base image with Python 3.11
-FROM python:3.11
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Install uv (since it's not included by default)
-RUN pip install uv
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy dependency files first (to leverage caching)
-COPY pyproject.toml requirements.txt ./
-
-# Create a virtual environment with uv and install dependencies
-RUN uv venv && uv pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application files
 COPY . .
 
-# Ensure the virtual environment is activated and run FastAPI
-CMD ["uv", "pip", "run", "uvicorn", "agent:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8000  
+
+# Health check (optional but recommended)
+HEALTHCHECK --interval=5s --timeout=5s --retries=3 CMD ["curl", "-f", "http://localhost:8000/health"] || exit 1
+
+# No CMD needed; the base image handles it.
+
+# Set environment variables if needed (or pass them at runtime as instructed)
+# ENV AIPROXY_TOKEN=your_token_here (better to pass at runtime)

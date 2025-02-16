@@ -31,8 +31,8 @@ def get_embeddings(text_list):
 
 def get_embedding_from_model(text):
     embeddings_model = OpenAIEmbeddings(
-        openai_api_base=os.environ['OPENAI_BASE'],
-        openai_api_key=f"{os.environ['LLMFOUNDRY_TOKEN']}:{os.environ['PROJECT_NAME']}",
+        openai_api_base="https://llmfoundry.straive.com/openai/v1/",
+        openai_api_key=f"{os.environ['AIPROXY_TOKEN']}:{os.environ['PROJECT_NAME']}",
         model="text-embedding-3-small",
     )
     return embeddings_model.embed_documents([text])[0]
@@ -40,16 +40,16 @@ def get_embedding_from_model(text):
 # Model for email extraction
 def agent_and_email_model():
     return ChatOpenAI(
-        openai_api_base=os.environ['OPENAI_BASE'],
-        openai_api_key=f"{os.environ['LLMFOUNDRY_TOKEN']}:{os.environ['PROJECT_NAME']}",
+        openai_api_base="https://llmfoundry.straive.com/openai/v1/",
+        openai_api_key=f"{os.environ['AIPROXY_TOKEN']}:{os.environ['PROJECT_NAME']}",
         model="gpt-4o-mini",
 )
 
 # function using llm model for getting the card number extraction from image
 def image_extraction_model_response(image_base64, image_type):
     response = requests.post(
-        os.environ['IMAGE_LLM_BASE'],
-        headers={"Authorization": f"Bearer {os.environ['LLMFOUNDRY_TOKEN']}:{os.environ['PROJECT_NAME']}"},
+        "https://llmfoundry.straive.com/azureformrecognizer/analyze",
+        headers={"Authorization": f"Bearer {os.environ['AIPROXY_TOKEN']}:TDS-PROJECT-1"},
         json={
                 "model": "prebuilt-document", # Or a more suitable model if available
                 "document": f"data:image/{image_type};base64,{image_base64}",
