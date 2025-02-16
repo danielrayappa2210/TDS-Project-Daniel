@@ -1,0 +1,13 @@
+.git
+__pycache__
+*.pyc
+venv
+.env  # Exclude .env files for security
+tests/
+test/
+.pytest_cache
+__pycache__/
+.mypy_cache/
+.DS_Store
+*.swp
+*~
