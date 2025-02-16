@@ -13,7 +13,7 @@ WORKDIR /app
 COPY . .
 
 # Install Python dependencies using uv
-RUN pip install uv && uv pip install --system
+RUN pip install uv && uv pip install -r requirements.txt
 
 # Ensure Prettier is installed
 RUN npm install --save-dev --save-exact prettier
