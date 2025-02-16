@@ -1,25 +1,17 @@
-# Use official Python image
-FROM python:3.11-slim
+# Use official Python base image
+FROM python:3.11
 
-# Install Node.js for Prettier
-RUN apt-get update && apt-get install -y nodejs npm && \
-    npm install -g npx && \
-    apt-get clean
-
-# Set working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Copy project files into the container
+COPY . /app
 
-# Install Python dependencies using uv
-RUN pip install uv && uv pip install -r requirements.txt
+# Install uv and create a virtual environment
+RUN pip install uv && uv venv && uv pip install -r requirements.txt
 
-# Ensure Prettier is installed
-RUN npm install --save-dev --save-exact prettier
-
-# Expose FastAPI default port
+# Expose the port FastAPI will run on
 EXPOSE 8000
 
-# Command to run the FastAPI app
-CMD ["uvicorn", "agent:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application
+CMD ["uv", "pip", "install", "--system"] && ["python", "agent.py"]
