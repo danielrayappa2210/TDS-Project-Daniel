@@ -1,5 +1,4 @@
 .git
-__pycache__
 *.pyc
 venv
 .env  # Exclude .env files for security
@@ -11,3 +10,8 @@ __pycache__/
 .DS_Store
 *.swp
 *~
+__pycache__/
+data/
+.pytest_cache
+hello.py
+date-sundays.txt
