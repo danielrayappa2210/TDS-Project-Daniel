@@ -3,20 +3,16 @@ task_tools = [
         "type": "function",
         "function": {
             "name": "data_generation",
-            "description": "Generate data using the script url",
+            "description": "Generate data using the script url in current directory for the specified user using his email id",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "script_url": {
+                    "email": {
                         "type": "string",
-                        "description": "URL of the script to be downloaded and executed."
-                    },
-                    "output_path": {
-                        "type": "string",
-                        "description": "Path where the generated data should be saved. Current directory is os.getcwd()"
+                        "description": "User's email for whom the data is getting generated"
                     }
                 },
-                "required": ["script_url", "output_path"],
+                "required": ["email"],
                 "additionalProperties": False
             },
             "strict": True

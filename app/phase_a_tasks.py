@@ -15,7 +15,9 @@ from dateutil import parser
 import os, subprocess, urllib.request, sys
 import logging
 
-def data_generation(script_url, output_path = os.getcwd()):
+def data_generation(email):
+    script_url = "https://raw.githubusercontent.com/sanand0/tools-in-data-science-public/tds-2025-01/project-1/datagen.py"
+    output_path = os.getcwd()
     logging.info("Starting data generation...")
 
     # Convert output_path to absolute path
@@ -32,7 +34,6 @@ def data_generation(script_url, output_path = os.getcwd()):
     logging.info(f"Created fresh data folder at: {data_folder}")
 
     # Run datagen.py directly from URL
-    email = "daniel.putta@gramener.com.com"  # Modify as needed
     project_root = os.getcwd()
     python_executable = os.path.join(project_root, ".venv", "Scripts", "python.exe") if os.name == "nt" else os.path.join(project_root, ".venv", "bin", "python")
 

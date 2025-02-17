@@ -54,13 +54,6 @@ def agent(input_str,tools):
             try:
                 function_call_details = json.loads(json_str)
                 logging.info(f"Function details loaded: {function_call_details}")
-                if function_call_details['function'] == "data_generation":
-                    func = globals()[function_call_details['function']]
-                    if function_call_details['parameters']['output_path'] == ".":
-                        _ = func(function_call_details['parameters']['script_url'])
-                    else:
-                        _ = func(**function_call_details['parameters'])
-                    return function_call_details
                 for arg_name, arg_val in function_call_details['parameters'].items():
                     if ("dir" in arg_name) or ("path" in arg_name):
                         if not is_safe(arg_val):
