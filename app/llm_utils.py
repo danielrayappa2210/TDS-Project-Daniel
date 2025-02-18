@@ -4,6 +4,7 @@ import requests
 from dotenv import load_dotenv
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.chat_models import ChatOpenAI
+from openai import OpenAI
 
 load_dotenv()
 
@@ -43,7 +44,7 @@ def agent_and_email_model():
         model="gpt-4o-mini",
 )
 
-# function using llm model for getting the card number extraction from image
+# function using api for getting the card number extraction from image
 def image_extraction_model_response(image_base64, image_type):
     response = requests.post(
         "https://llmfoundry.straive.com/azureformrecognizer/analyze",
@@ -67,3 +68,16 @@ def image_extraction_model_response(image_base64, image_type):
             }
     )
     return response.json()
+
+# function using openai api for mp3 to text extraction
+def mp3_transcription_model_response(audio_file):
+    client = OpenAI(
+    api_key=os.environ['AIPROXY_TOKEN'],
+    base_url="https://llmfoundry.straive.com/openai/v1/",
+    )
+
+    transcription = client.audio.translations.create(
+        model="whisper-1", 
+        file=audio_file,
+    )
+    return transcription.text
