@@ -9,16 +9,12 @@ pydantic
 pytest
 langchain
 pillow
-sentence-transformers
 numpy
-duckdb
-beautifulsoup4
 markdown
 joblib
 langchain-community
 pandas
 scikit-learn
-httpx
 GitPython
 python-dateutil
 faker
