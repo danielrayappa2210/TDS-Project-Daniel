@@ -1,7 +1,6 @@
 # test script to test each function in app/phase_a_tasks.py
 
 from app.phase_a_tasks import *
-import tempfile
 import os
 import random
 import glob

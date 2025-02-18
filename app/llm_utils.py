@@ -1,11 +1,9 @@
 import os
 import joblib
-import httpx
 import requests
 from dotenv import load_dotenv
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.chat_models import ChatOpenAI
-from typing import Dict, Any
 
 load_dotenv()
 

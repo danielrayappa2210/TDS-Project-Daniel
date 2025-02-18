@@ -8,7 +8,6 @@ tiktoken
 pydantic
 pytest
 langchain
-langdetect
 pillow
 sentence-transformers
 numpy
