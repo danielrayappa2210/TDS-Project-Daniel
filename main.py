@@ -36,7 +36,7 @@ def agent(input_str,tools):
                                       Based on input string: {input_string}, extract the arguments and call the right function. \
                                       If needed, call multiple functions in the order of their execution. Return function and arguments \
                                         in json format with keys 'function' and 'parameters'. \
-                                      If the task asks for removal or deletion of any file, return string 'null' in json")
+                                      If the task asks for removal or deletion of any file, return in same format with null as function empty parameters")
     final_func_call_prompt = function_call_prompt.format(functions=tools,input_string=task_description)
     func_call_response = chat_model.invoke(final_func_call_prompt)
     output = json.loads(func_call_response.json())
