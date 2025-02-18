@@ -5,7 +5,7 @@ from PIL import Image
 import os
 import markdown
 from git import Repo # type: ignore
-from llm_utils import *
+from . import llm_utils
 
 def fetch_and_save_data(api_url, output_file_path):
     if output_file_path.startswith('/'):
@@ -144,7 +144,7 @@ def mp3_to_text(mp3_file_path, output_file_path):
             output_file_path = output_file_path.strip('/')
         
         audio_file = open(mp3_file_path, "rb")
-        output_text = mp3_transcription_model_response(audio_file)
+        output_text = llm_utils.mp3_transcription_model_response(audio_file)
 
         with open(output_file_path, "w") as file:
             file.write(output_text)
