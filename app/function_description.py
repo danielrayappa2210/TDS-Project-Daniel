@@ -370,5 +370,28 @@ task_tools = [
             },
             "strict": True
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "mp3_to_text",
+            "description": "Transcribe an audio file to text and save it in another file",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "mp3_file_path": {
+                        "type": "string",
+                        "description": "Filepath of the input audio file"
+                    },
+                    "output_file_path": {
+                        "type": "string",
+                        "description": "Filepath for the output file"
+                    }
+                },
+                "required": ["mp3_file_path", "output_file_path"],
+                "additionalProperties": False
+            },
+            "strict": True
+        }
     }
 ]
