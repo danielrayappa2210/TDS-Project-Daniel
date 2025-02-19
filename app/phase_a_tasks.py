@@ -24,8 +24,10 @@ def data_generation(email):
     # Overwrite existing data folder
     if os.path.exists(data_folder):
         logging.info(f"Removing existing data folder: {data_folder}")
-        # subprocess.run(["rm", "-rf", data_folder], check=True, shell=True)  # Unix/macOS
-        subprocess.run(["rmdir", "/s", "/q", data_folder], shell=True) # Windows
+        if os.name == "nt":  # Windows
+            subprocess.run(["rmdir", "/s", "/q", data_folder], shell=True)
+        else:  # Linux/macOS (Docker)
+            subprocess.run(["rm", "-rf", data_folder], shell=True)
 
     os.makedirs(data_folder, exist_ok=True)  # Create the folder
     logging.info(f"Created fresh data folder at: {data_folder}")
