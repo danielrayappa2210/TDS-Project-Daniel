@@ -11,10 +11,9 @@ langchain
 pillow
 numpy
 markdown
-joblib
-langchain-community
 pandas
 scikit-learn
 GitPython
 python-dateutil
 faker
+httpx

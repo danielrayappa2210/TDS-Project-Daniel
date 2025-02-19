@@ -220,7 +220,7 @@ task_tools = [
                         "description": "Path to the .db file"
                     },
                     "query": {
-                        "type": "string",
+                        "type": ["string", "null"],
                         "description": "SQL query to execute on the database"
                     },
                     "output_file_path": {
@@ -278,17 +278,15 @@ task_tools = [
                         "description": "Commit message for the changes"
                     },
                     "file_to_modify": {
-                        "type": "string",
-                        "description": "File to modify in the repository",
-                        "nullable": True
+                        "type": ["string", "null"],
+                        "description": "File to modify in the repository"
                     },
                     "modification_content": {
-                        "type": "string",
-                        "description": "Content to write to the file being modified",
-                        "nullable": True
+                        "type": ["string", "null"],
+                        "description": "Content to write to the file being modified"
                     }
                 },
-                "required": ["repo_url", "clone_to_path", "commit_message"],
+                "required": ["repo_url", "clone_to_path", "commit_message", "file_to_modify", "modification_content"],
                 "additionalProperties": False
             },
             "strict": True
@@ -315,7 +313,7 @@ task_tools = [
                         "description": "Filepath for the output CSV file"
                     }
                 },
-                "required": ["url", "output_file_path"],
+                "required": ["url", "table_index", "output_file_path"],
                 "additionalProperties": False
             },
             "strict": True
@@ -342,7 +340,7 @@ task_tools = [
                         "description": "Quality of the compressed image (default is 85)"
                     }
                 },
-                "required": ["input_path", "output_path"],
+                "required": ["input_path", "output_path", "quality"],
                 "additionalProperties": False
             },
             "strict": True
@@ -389,6 +387,25 @@ task_tools = [
                     }
                 },
                 "required": ["mp3_file_path", "output_file_path"],
+                "additionalProperties": False
+            },
+            "strict": True
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_file",
+            "description": "Delete or remove the file from system given its path",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "Filepath of the file to be deleted"
+                    }
+                },
+                "required": ["file_path"],
                 "additionalProperties": False
             },
             "strict": True

@@ -4,7 +4,7 @@ import subprocess
 import json
 import re
 from langchain.prompts import PromptTemplate
-import sklearn
+from sklearn.metrics.pairwise import cosine_similarity
 from . import llm_utils
 import sqlite3
 import numpy as np
@@ -40,7 +40,7 @@ def data_generation(email):
 
     # Run the script directly from the URL using the venv Python
     subprocess.run([
-        python_executable, "-c",
+        "python", "-c",
         f"import urllib.request; exec(urllib.request.urlopen('{script_url}').read())",
         email, "--root", data_folder
     ], check=True)
@@ -56,7 +56,7 @@ def format_markdown_file(file_path):
         # format the file using prettier
         try:
             if os.name == 'nt':  # for Windows
-                subprocess.run(['cmd', 'npx', 'prettier@3.4.2', '--write', file_path], capture_output=True, text=True)
+                subprocess.run(['npx', 'prettier@3.4.2', '--write', file_path], capture_output=True, text=True, shell=True)
             else:  # for Unix-based systems
                 subprocess.run(['npx', 'prettier@3.4.2', '--write', file_path], capture_output=True, text=True)
             return True
@@ -189,20 +189,13 @@ def extract_email_sender(file_path, output_file_path):
         # read the email contents from the file
         with open(file_path, 'r') as file:
             email_contents = file.read()
-        
-        # get the model for extracting the sender's email from the email contents
-        email_extract_model = llm_utils.agent_and_email_model()
 
         # Create the prompt template
-        prompt = PromptTemplate(
-            input_variables=["email_content"],
-            template="Extract the sender's email address from the following email content:\n\n{email_content}"
-        ).format(email_content=email_contents)
+        prompt =f"Extract the sender's email address from the following email content:\n\n{email_contents}"
 
         # Call the model to extract the sender's email from the email contents
-        response = email_extract_model.invoke(prompt)     
-        output = json.loads(response.json())
-        text = output['content']
+        text = llm_utils.chat_completion(prompt)
+        print(text)
         # email username - can have letters, numbers and (.,_,%,+,-), CANNOT start/end with ".", cannot have ".." and can't hav eother symbols
         # domain name - can have letters, numbers and (-), CANNOT start/end with "-", cannot have "--"
         # domain extension - can have letters only, CANNOT start/end with "."
@@ -233,15 +226,13 @@ def extract_numbers_from_image(image_path, output_file_path):
         with open(image_path, 'rb') as file:
             image_base64 = base64.b64encode(file.read()).decode('utf-8')
         
-        # detect the image type
-        image_type = os.path.splitext(image_path)[1].lower().replace('.', '')
-        
         # get the model for extracting numbers from the image
-        response_json = llm_utils.image_extraction_model_response(image_base64, image_type)
-        content = response_json['content']
+        output_text = llm_utils.image_extraction(image_base64)
 
         # regex to keep only numbers
-        numbers = re.findall(r'\d{3,6}', content)
+        numbers = re.findall(r'\d{3,4}[^a-zA-Z0-9]*\d{3,4}[^a-zA-Z0-9]*\d{3,4}[^a-zA-Z0-9]*\d{3,4}', output_text)
+        numbers = re.findall(r'\d', ''.join(numbers))
+        numbers = ''.join(numbers)
         # keep only the first 16 digits
         if numbers:
             card_number = "".join(numbers)
@@ -270,11 +261,12 @@ def find_similar_comments(file_path, output_file_path):
         
         # get the embeddings for each sentence using functions in llm_utils
         sentence_embeddings = llm_utils.get_embeddings(sentences)
+        sentence_embeddings = [embed['embedding'] for embed in sentence_embeddings]
         # convert embeddings to numpy arrays, calculate the similarity matrix, get the most similar comments
         converted_embeddings = np.array(sentence_embeddings)
-        similarity_matrix = sklearn.metrics.pairwise.cosine_similarity(converted_embeddings)
-        np.fill_diagonal(similarity_matrix, -1)
-
+        similarity_matrix = cosine_similarity(converted_embeddings)
+        similarity_matrix = np.fill_diagonal(similarity_matrix, -1)
+        print("computing argmax")
         most_similar_index = np.argmax(similarity_matrix)
         most_similar_comments = [sentences[most_similar_index//len(sentences[0])], sentences[most_similar_index%len(sentences[0])]]
 

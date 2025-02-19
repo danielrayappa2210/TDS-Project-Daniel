@@ -22,47 +22,26 @@ def is_safe(path):
 
 def agent(input_str,tools):
     logging.info(f"Initial task: {input_str}")
-    prompt = PromptTemplate(template="Translate the input string into english if it is not english, else return it as it is. Input string: {input_string}.")
-    final_prompt = prompt.format(input_string=input_str)
-    chat_model = agent_and_email_model()
-    response = chat_model.invoke(final_prompt)
-    output = json.loads(response.json())
-    task_description = output['content']
-    logging.info(f"After translation if needed: {task_description} ")
-    
-    # Analyse the task description and for valid task extract arguments and call right function
+    response = query_gpt(input_str, tools)
+    function_call_details = [tool_call["function"] for tool_call in response["tool_calls"]][0]
+    logging.info(f"Function details loaded: {function_call_details}")
 
-    function_call_prompt = PromptTemplate(template="You have access to the following functions. '''json {functions}'''. \
-                                      Based on input string: {input_string}, extract the arguments and call the right function. \
-                                      If needed, call multiple functions in the order of their execution. Return function and arguments \
-                                        in json format with keys 'function' and 'parameters'. \
-                                      If the task asks for removal or deletion of any file, return in same format with null as function empty parameters")
-    final_func_call_prompt = function_call_prompt.format(functions=tools,input_string=task_description)
-    func_call_response = chat_model.invoke(final_func_call_prompt)
-    output = json.loads(func_call_response.json())
-    final_text = output['content']
-    logging.info(f"Final formatted task description: {final_text}")
-
-    # Extract the JSON part from the text
-    json_match = re.search(r'```json(.*?)```', final_text, re.DOTALL)
-    if json_match:
-        json_str = json_match.group(1).strip()
-        if json_str=="null":
-            return 1 # 400 bad request, deletion/removal of file
-        else:
-            try:
-                function_call_details = json.loads(json_str)
-                logging.info(f"Function details loaded: {function_call_details}")
-                for arg_name, arg_val in function_call_details['parameters'].items():
-                    if ("dir" in arg_name) or ("path" in arg_name):
-                        if not is_safe(arg_val):
-                            return 2 # 400 bad request, access restricted, invalie input/output path
-                func = globals()[function_call_details['function']]
-                logging.info(f"Executing: {func}")
-                _ = func(**function_call_details['parameters'])
-                return {func:function_call_details['parameters']}
-            except Exception as e:
-                return 4 # 500 Internal server error, error in function call
+    # Checkinf task requires deletion of any file
+    if function_call_details['name'] == "delete_file":
+        return 1
+    elif len(function_call_details)>0:
+        try:
+            arguments = json.loads(function_call_details['arguments'])
+            for arg_name, arg_val in arguments.items():
+                if ("dir" in arg_name) or ("path" in arg_name):
+                    if not is_safe(arg_val):
+                        return 2 # 400 bad request, access restricted, invalie input/output path
+            func = globals()[function_call_details['name']]
+            logging.info(f"Executing: {func}")
+            _ = func(**arguments)
+            return {func:arguments}
+        except Exception as e:
+            return 4 # 500 Internal server error, error in function call
     else:
         return 5 # 400 bad request unknow task request
     

@@ -1,83 +1,84 @@
 import os
-import joblib
 import requests
+import httpx
 from dotenv import load_dotenv
-from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_community.chat_models import ChatOpenAI
 from openai import OpenAI
+from typing import Dict, Any
 
 load_dotenv()
 
-# model and functions for embeddings
-# load embeddings cache file if it exits otherwise create one
-try:
-    embedding_cache = joblib.load("embedding_cache.joblib")
-except FileNotFoundError:
-    embedding_cache = {}
-
-# wrapper function for caching the embeddings
-def get_embeddings(text_list):
-    embeddings = []
-    for text in text_list:
-        if text in embedding_cache:
-            embeddings.append(embedding_cache[text])
-        else:
-            embedding = get_embedding_from_model(text)
-            embedding_cache[text] = embedding
-            embeddings.append(embedding)
-    joblib.dump(embedding_cache, "embedding_cache.joblib")
-    return embeddings
-
-def get_embedding_from_model(text):
-    embeddings_model = OpenAIEmbeddings(
-        openai_api_base="https://llmfoundry.straive.com/openai/v1/",
-        openai_api_key=f"{os.environ['AIPROXY_TOKEN']}:{os.environ['PROJECT_NAME']}",
-        model="text-embedding-3-small",
-    )
-    return embeddings_model.embed_documents([text])[0]
-
-# Model for email extraction
-def agent_and_email_model():
-    return ChatOpenAI(
-        openai_api_base="https://llmfoundry.straive.com/openai/v1/",
-        openai_api_key=f"{os.environ['AIPROXY_TOKEN']}:{os.environ['PROJECT_NAME']}",
-        model="gpt-4o-mini",
+client = OpenAI(
+    api_key=os.getenv("AIPROXY_TOKEN"),  # Set API key
+    base_url="http://aiproxy.sanand.workers.dev/openai/v1" # Set base URL
 )
 
-# function using api for getting the card number extraction from image
-def image_extraction_model_response(image_base64, image_type):
+# Email extraction or other llm tasks
+def chat_completion(prompt: str, model: str = "gpt-4o-mini"):
+    url = "http://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {os.getenv('AIPROXY_TOKEN')}"
+    }
+    data = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()['choices'][0]['message']['content']
+
+# Embeddings
+def get_embeddings(inputs: list, model: str = "text-embedding-3-small"):
+    url = "http://aiproxy.sanand.workers.dev/openai/v1/embeddings"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {os.getenv('AIPROXY_TOKEN')}"
+    }
+    data = {
+        "model": model,
+        "input": inputs
+    }
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()['data']
+
+# Function calling 
+def query_gpt(user_input: str, tools: list[Dict[str, Any]]) -> Dict[str, Any]:
     response = requests.post(
-        "https://llmfoundry.straive.com/azureformrecognizer/analyze",
-        headers={"Authorization": f"Bearer {os.environ['AIPROXY_TOKEN']}:TDS-PROJECT-1"},
+        "http://aiproxy.sanand.workers.dev/openai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {os.getenv('AIPROXY_TOKEN')}",
+            "Content-Type": "application/json",
+        },
         json={
-                "model": "prebuilt-document", # Or a more suitable model if available
-                "document": f"data:image/{image_type};base64,{image_base64}",
-                "prompt": """
-                Extract the (15-16)digit credit/debit card number from the image. The numbers are mostly together, seperated from the rest. If no card number is found, return "None".  Return the output as a JSON string with the key "card_number".  For example:
+            "model": "gpt-4o-mini",
+            "messages": [{"role": "user", "content": user_input}],
+            "tools": tools,
+            "tool_choice": "auto",
+        },
+    )
+    print(response.json())
+    return response.json()["choices"][0]["message"]
 
-                ```json
-                {"card_number": "1234567890123456"}
-                ```
+# Image extraction
+def image_extraction(base64_image):
 
-                If no card number is found, return:
-
-                ```json
-                {"card_number": null}
-                ```
-                """,
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Extract the numbers from this image",
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{base64_image}"},
+                    },
+                ],
             }
-    )
-    return response.json()
-
-# function using openai api for mp3 to text extraction
-def mp3_transcription_model_response(audio_file):
-    client = OpenAI(
-    api_key=os.environ['AIPROXY_TOKEN'],
-    base_url="https://llmfoundry.straive.com/openai/v1/",
+        ],
     )
 
-    transcription = client.audio.translations.create(
-        model="whisper-1", 
-        file=audio_file,
-    )
-    return transcription.text
+    choices = response.choices[0]
+    return choices.message.content

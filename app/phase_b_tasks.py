@@ -125,29 +125,13 @@ def markdown_to_html(markdown_file_path, output_file_path):
     try:
         with open(markdown_file_path, "r") as f:
             markdown_text = f.read()
-        
+    
         html = markdown.markdown(markdown_text)
         
         with open(output_file_path, "w") as f:
             f.write(html)
         
         print(f"HTML successfully written to {output_file_path}")
-        return True
-    except:
-        return False
-    
-def mp3_to_text(mp3_file_path, output_file_path):
-    try:
-        if mp3_file_path.startswith('/'):
-            mp3_file_path = mp3_file_path.strip('/')
-        if output_file_path.startswith('/'):
-            output_file_path = output_file_path.strip('/')
-        
-        audio_file = open(mp3_file_path, "rb")
-        output_text = llm_utils.mp3_transcription_model_response(audio_file)
-
-        with open(output_file_path, "w") as file:
-            file.write(output_text)
         return True
     except:
         return False
