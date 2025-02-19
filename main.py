@@ -67,19 +67,19 @@ async def agent_post_endpoint(task: str):
     result = agent(task, task_tools)
     if result == 1:
         logging.info("Bad request, Files cannot be deleted")
-        raise HTTPException(status_code=400, detail="Bad request, Files cannot be deleted")
+        return JSONResponse(content={"detail": "Bad request, Files cannot be deleted"}, status_code=400)
     elif result == 2:
         logging.info("Bad request, access restricted for the input/output path")
-        raise HTTPException(status_code=400, detail="Bad request, access restricted for the input/output path")
+        return JSONResponse(content={"detail": "Bad request, access restricted for the input/output path"}, status_code=400)
     elif isinstance(result,dict):
         logging.info("Task executed successfully")
         return JSONResponse(content={"detail": "Task executed successfully"}, status_code=200)
     elif result == 4:
         logging.info("Internal server error, could not complete the task")
-        raise HTTPException(status_code=500, detail="Internal server error, could not complete the task")
+        return JSONResponse(content={"detail": "Internal server error, could not complete the task"}, status_code=500)
     else:
         logging.info("unknown task description/description not clear")
-        raise HTTPException(status_code=400, detail="Bad request, unknown task description/description not clear")
+        return JSONResponse(content={"detail": "Bad request, unknown task description/description not clear"}, status_code=400)
 
 @app.get("/read")
 async def get_file_details(path: str):

@@ -30,14 +30,6 @@ def data_generation(email):
     os.makedirs(data_folder, exist_ok=True)  # Create the folder
     logging.info(f"Created fresh data folder at: {data_folder}")
 
-    # Run datagen.py directly from URL
-    project_root = os.getcwd()
-    python_executable = os.path.join(project_root, ".venv", "Scripts", "python.exe") if os.name == "nt" else os.path.join(project_root, ".venv", "bin", "python")
-
-    if not os.path.exists(python_executable):
-        logging.error("Python virtual environment not found! Ensure that .venv exists and is set up properly.")
-        return
-
     # Run the script directly from the URL using the venv Python
     subprocess.run([
         "python", "-c",
